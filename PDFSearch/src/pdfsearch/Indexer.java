@@ -55,8 +55,6 @@ public class Indexer {
 				metadata = new Metadata();
 				parser.parse(input, textHandler, metadata, new ParseContext());
 			}
-		
-			System.out.println(textHandler.toString());
 			
 			Document doc = new Document();
 			doc.add(new TextField("title", metadata.get("title"), Field.Store.YES));

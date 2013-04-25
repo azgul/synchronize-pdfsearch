@@ -33,8 +33,8 @@ public class Searcher {
 		Directory index = factory.getIndex();
 		Analyzer analyzer = factory.getAnalyzer();
 		
-		Query q = new QueryParser(Version.LUCENE_42, "title", analyzer).parse(searchTerm);
-
+		Query q = new QueryParser(Version.LUCENE_42, "content", analyzer).parse(searchTerm);
+		System.out.println(index.toString());
 		
 		int hitsPerPage = 10;
 		try (IndexReader reader = DirectoryReader.open(index)) {
