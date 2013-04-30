@@ -22,6 +22,7 @@ import org.apache.tika.parser.ParseContext;
 import org.apache.tika.parser.pdf.PDFParser;
 import org.apache.tika.sax.BodyContentHandler;
 import org.xml.sax.ContentHandler;
+import ucar.nc2.dataset.conv.BUFRConvention;
 
 /**
  *
@@ -35,30 +36,30 @@ public class PDFSearch {
 	}
 	
 	public static void main(String[] args) {
-		String phrase = "indkomst";
-		
+		String phrase = "piglets";
 		
 		PDFSearch s = new PDFSearch(new MMapIndexFactory());
 		
-		s.testFileIsModified();
-		
-		/*System.out.println("Adding/Updating PDFs in index");
-		System.out.println("-------------------------------------------------");
-		
-		long start = System.currentTimeMillis();
-		s.addPDFs();
-		long end = System.currentTimeMillis();
-		
-		System.out.println("Finished building index! Time spent: "+ (end-start) + " ms");
-		System.out.println("-------------------------------------------------");*/
-		
+		s.testBuildIndex();
+		s.testSearch(phrase);
+	}
+	
+	public void testSearch(String phrase){
 		System.out.println("Searching for '" + phrase + "' in index...");
-		
 		long startSearch = System.currentTimeMillis();
-		s.search(phrase);
+		search(phrase);
 		long endSearch = System.currentTimeMillis();
 		System.out.println("Finished search! Time spent: "+ (endSearch-startSearch) + " ms");
-		
+	}
+	
+	public void testBuildIndex(){
+		System.out.println("Adding/Updating PDFs in index");
+		System.out.println("-------------------------------------------------");
+		long start = System.currentTimeMillis();
+		addPDFs();
+		long end = System.currentTimeMillis();
+		System.out.println("Finished building index! Time spent: "+ (end-start) + " ms");
+		System.out.println("-------------------------------------------------");
 	}
 	
 	public void testFileIsModified(){
@@ -132,7 +133,7 @@ public class PDFSearch {
 	public void addPDFs(){
 		Indexer indexer = new Indexer(factory);
 		
-		File dir = new File("C:\\Users\\Lars\\Documents\\GitHub\\synchronize-pdfsearch\\PDFs");
+		File dir = new File("C:\\Users\\Lars\\Documents\\GitHub\\synchronize-pdfsearch\\Hamlet-PDFs");
 		
 		ArrayList<File> files = getFiles(dir);
 		for(File f : files)
