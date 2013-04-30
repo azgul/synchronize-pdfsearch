@@ -39,7 +39,7 @@ public class PDFSearch {
 		s.addPDFs();
 		long end = System.currentTimeMillis();
 		System.out.println(end-start + " ms");
-		s.search("javascript development wordpress");
+		s.search("javascript");
 		long end2 = System.currentTimeMillis();
 		System.out.println(end2-end + " ms");
 	}

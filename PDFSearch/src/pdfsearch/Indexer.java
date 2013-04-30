@@ -74,7 +74,22 @@ public class Indexer {
 			Document doc = new Document();
 			
 			doc.add(new TextField("title", (metadata.get("title") == null ? "" : metadata.get("title")), Field.Store.YES));
-			doc.add(new TextField("contents", textHandler.toString(), Field.Store.NO));
+			TextField contentsField = new TextField("contents", textHandler.toString(), Field.Store.NO);
+			
+			
+			TextField keywordField = new TextField("keywords", "", Field.Store.NO);
+			if(pdf.getPath().equals("C:\\Users\\Lars\\Documents\\GitHub\\synchronize-pdfsearch\\PDFs\\test.pdf")){
+				System.out.println("Fixing keywords!");
+				keywordField = new TextField("keywords", "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc quis tellus sed orci vulputate tristique. Quisque pellentesque cursus nisl, vel pulvinar mauris sollicitudin ac. Aliquam sed nulla tortor. Cras egestas javascript dui accumsan nisl molestie eu tincidunt ipsum luctus. Proin placerat pharetra purus, quis viverra purus gravida in. Pellentesque orci tellus.", Field.Store.NO);
+				//keywordField.setBoost(3);
+			}else if(pdf.getPath().equals("C:\\Users\\Lars\\Documents\\GitHub\\synchronize-pdfsearch\\PDFs\\2.pdf")){
+				keywordField = new TextField("keywords", "javascript", Field.Store.NO);
+				//keywordField.setBoost(2);
+			}
+			
+			
+			doc.add(contentsField);
+			doc.add(keywordField);
 			doc.add(new LongField("modified", pdf.lastModified(), Field.Store.NO));
 			
 			Field pathField = new StringField("path", pdf.getPath(), Field.Store.YES);

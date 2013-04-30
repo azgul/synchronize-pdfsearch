@@ -9,6 +9,7 @@ import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
+import org.apache.lucene.queryparser.classic.MultiFieldQueryParser;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.queryparser.classic.QueryParser;
 import org.apache.lucene.search.IndexSearcher;
@@ -34,7 +35,11 @@ public class Searcher {
 		Directory index = factory.getIndex();
 		Analyzer analyzer = factory.getAnalyzer();
 		
-		Query q = new QueryParser(Version.LUCENE_42, "contents", analyzer).parse(searchTerm);
+		//Query q = new QueryParser(Version.LUCENE_42, "contents", analyzer).parse(searchTerm);
+		
+		String[] searchFields = {"title", "contents", "keywords"};
+		
+		Query q = new MultiFieldQueryParser(Version.LUCENE_42, searchFields, analyzer).parse(searchTerm);
 		
 		int hitsPerPage = 10;
 		try (IndexReader reader = DirectoryReader.open(index)) {
