@@ -35,21 +35,38 @@ public class PDFSearch {
 	}
 	
 	public static void main(String[] args) {
+		String phrase = "indkomst";
+		
+		
 		PDFSearch s = new PDFSearch(new MMapIndexFactory());
 		
-		/*long start = System.currentTimeMillis();
+		s.testFileIsModified();
+		
+		/*System.out.println("Adding/Updating PDFs in index");
+		System.out.println("-------------------------------------------------");
+		
+		long start = System.currentTimeMillis();
 		s.addPDFs();
 		long end = System.currentTimeMillis();
-		System.out.println(end-start + " ms");
-		s.search("javascript");
-		long end2 = System.currentTimeMillis();
-		System.out.println(end2-end + " ms");*/
 		
-		File dir = new File("C:\\Users\\Lars\\Documents\\GitHub\\synchronize-pdfsearch\\PDFs");
+		System.out.println("Finished building index! Time spent: "+ (end-start) + " ms");
+		System.out.println("-------------------------------------------------");*/
 		
-		ArrayList<File> files = s.getFiles(dir);
-		for(File f : files)
-			System.out.println(f.getPath());
+		System.out.println("Searching for '" + phrase + "' in index...");
+		
+		long startSearch = System.currentTimeMillis();
+		s.search(phrase);
+		long endSearch = System.currentTimeMillis();
+		System.out.println("Finished search! Time spent: "+ (endSearch-startSearch) + " ms");
+		
+	}
+	
+	public void testFileIsModified(){
+		Searcher s = new Searcher(factory);
+		
+		File f = new File("C:\\Users\\Lars\\Documents\\GitHub\\synchronize-pdfsearch\\PDFs\\1.pdf");
+		
+		System.out.println(s.fileIsModified(f));
 	}
 	
 	public void search(String term){
@@ -115,9 +132,10 @@ public class PDFSearch {
 	public void addPDFs(){
 		Indexer indexer = new Indexer(factory);
 		
-		// Add PDF Files to index
-		for(int i = 1; i < 21; i++)
-			indexer.addPDF("C:\\Users\\Lars\\Documents\\GitHub\\synchronize-pdfsearch\\PDFs\\"+i+".pdf");
-		indexer.addPDF("C:\\Users\\Lars\\Documents\\GitHub\\synchronize-pdfsearch\\PDFs\\test.pdf");
+		File dir = new File("C:\\Users\\Lars\\Documents\\GitHub\\synchronize-pdfsearch\\PDFs");
+		
+		ArrayList<File> files = getFiles(dir);
+		for(File f : files)
+			indexer.addPDF(f);
 	}
 }
