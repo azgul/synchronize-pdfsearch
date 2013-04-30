@@ -7,6 +7,7 @@ package pdfsearch;
 import java.io.File;
 import java.io.IOException;
 import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.analysis.core.WhitespaceAnalyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
@@ -18,19 +19,33 @@ import org.apache.lucene.util.Version;
  *
  * @author Lars
  */
-public class MMapIndexFactory implements IndexFactory {
+public class MMapIndexFactory implements IndexFactory {	
+	@Override
 	public Directory getIndex() throws IOException{
-		return new MMapDirectory(new File(Constants.INDEX_DIRECTORY));
+		return MMapDirectory.open(new File(Constants.INDEX_DIRECTORY));
 	}
 	
+	@Override
 	public Analyzer getAnalyzer(){
 		return new StandardAnalyzer(Version.LUCENE_42);
 	}
 	
-	public IndexWriter getIndexWriter() throws IOException{
+	@Override
+	public IndexWriter getIndexWriter(boolean create) throws IOException{
 		Analyzer analyzer = getAnalyzer();
 		IndexWriterConfig config = new IndexWriterConfig(Version.LUCENE_42, analyzer);
+
+		if(create)
+			config.setOpenMode(IndexWriterConfig.OpenMode.CREATE);
+		else
+			config.setOpenMode(IndexWriterConfig.OpenMode.CREATE_OR_APPEND);
+
 		Directory index = getIndex();
 		return new IndexWriter(index, config);
+	}
+	
+	@Override
+	public IndexWriter getIndexWriter() throws IOException{
+		return getIndexWriter(false);
 	}
 }

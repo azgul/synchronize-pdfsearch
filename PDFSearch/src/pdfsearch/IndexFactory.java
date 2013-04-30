@@ -17,4 +17,5 @@ public interface IndexFactory {
 	public Directory getIndex() throws IOException;
 	public Analyzer getAnalyzer();
 	public IndexWriter getIndexWriter() throws IOException;
+	public IndexWriter getIndexWriter(boolean create) throws IOException;
 }

@@ -14,6 +14,7 @@ import org.apache.lucene.queryparser.classic.QueryParser;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
+import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.search.TopScoreDocCollector;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.util.Version;
@@ -33,22 +34,21 @@ public class Searcher {
 		Directory index = factory.getIndex();
 		Analyzer analyzer = factory.getAnalyzer();
 		
-		Query q = new QueryParser(Version.LUCENE_42, "content", analyzer).parse(searchTerm);
-		System.out.println(index.toString());
+		Query q = new QueryParser(Version.LUCENE_42, "contents", analyzer).parse(searchTerm);
 		
 		int hitsPerPage = 10;
 		try (IndexReader reader = DirectoryReader.open(index)) {
 			IndexSearcher searcher = new IndexSearcher(reader);
-			TopScoreDocCollector collector = TopScoreDocCollector.create(hitsPerPage, true);
-			searcher.search(q, collector);
-			ScoreDoc[] hits = collector.topDocs().scoreDocs;
+			
+			TopDocs results = searcher.search(q, 5 * hitsPerPage);
+			ScoreDoc[] hits = results.scoreDocs;
 
 			// 4. display results
-			System.out.println("Found " + hits.length + " hits.");
+			System.out.println("Found " + results.totalHits + " hits.");
 			for(int i=0;i<hits.length;++i) {
 				int docId = hits[i].doc;
 				Document d = searcher.doc(docId);
-				System.out.println((i + 1) + ". " + d.get("isbn") + "\t" + d.get("title"));
+				System.out.println((i + 1) + ". " + d.get("title") + "\t" + d.get("path"));
 			}
 		}
 	}
