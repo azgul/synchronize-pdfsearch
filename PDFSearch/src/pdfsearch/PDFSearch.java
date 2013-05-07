@@ -116,7 +116,7 @@ public class PDFSearch {
 		ArrayList<File> files = getFiles(dir);
 		for(File f : files){
 			indexer.addPDF(0, f);
-			break;
+			//break;
 		}
 	}
 }
