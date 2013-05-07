@@ -40,7 +40,7 @@ public class PDFSearch {
 		
 		PDFSearch s = new PDFSearch(new MMapIndexFactory());
 		
-		s.testBuildIndex();
+		//s.testBuildIndex();
 		s.testSearch(phrase);
 	}
 	
@@ -73,7 +73,7 @@ public class PDFSearch {
 	public void search(String term){
 		try{
 			Searcher s = new Searcher(factory);
-			s.search(term);
+			System.out.println(s.search(term));
 		}catch(IOException e){
 			System.err.println("IOException in search");
 			System.err.println(e);

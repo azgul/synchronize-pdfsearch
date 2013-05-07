@@ -8,6 +8,7 @@ import java.io.File;
  */
 public class SearchResult {
 	private File _pdf;
+	private String _title;
 	private String _abstract;
 	private String _language;
 	private int _category;
@@ -28,4 +29,6 @@ public class SearchResult {
 	public int getCategory(){ return _category; }
 	public String getAbstract(){ return _abstract; }
 	public String getLanguage(){ return _language; }
+	public String getModifiedDate(){ return ""; }
+	public String getTitle(){ return "DummyTitle"; }
 }

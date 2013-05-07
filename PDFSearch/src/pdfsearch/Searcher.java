@@ -88,7 +88,12 @@ public class Searcher {
 			for(int i=0;i<hits.length;++i) {
 				int docId = hits[i].doc;
 				Document d = searcher.doc(docId);
-				searchResult.add(new SearchResult(Integer.parseInt(d.get("category")), d.get("language"), d.get("path")));
+				
+				int category = (d.get("category") == null ? 0 : Integer.parseInt(d.get("category")));
+				String language = d.get("language");
+				String path = d.get("path");
+				
+				searchResult.add(new SearchResult(category, language, path));
 			}
 		}
 		
