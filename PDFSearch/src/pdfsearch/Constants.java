@@ -9,5 +9,5 @@ package pdfsearch;
  * @author Lars
  */
 public class Constants {
-	public static final String INDEX_DIRECTORY = "C:\\Users\\Lars\\Documents\\GitHub\\synchronize-pdfsearch\\Index";
+	public static final String INDEX_DIRECTORY = "../Index";
 }

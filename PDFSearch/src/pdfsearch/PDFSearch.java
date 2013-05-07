@@ -8,21 +8,8 @@ import java.io.File;
 import java.io.FileFilter;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
-import org.apache.lucene.document.Document;
-import org.apache.lucene.document.Field;
-import org.apache.lucene.document.LongField;
-import org.apache.lucene.document.StringField;
-import org.apache.lucene.document.TextField;
-import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.queryparser.classic.ParseException;
-import org.apache.tika.metadata.Metadata;
-import org.apache.tika.parser.ParseContext;
-import org.apache.tika.parser.pdf.PDFParser;
-import org.apache.tika.sax.BodyContentHandler;
-import org.xml.sax.ContentHandler;
-import ucar.nc2.dataset.conv.BUFRConvention;
 
 /**
  *
@@ -39,8 +26,7 @@ public class PDFSearch {
 		String phrase = "piglets";
 		
 		PDFSearch s = new PDFSearch(new MMapIndexFactory());
-		
-		//s.testBuildIndex();
+		s.testBuildIndex();
 		s.testSearch(phrase);
 	}
 	
@@ -60,14 +46,6 @@ public class PDFSearch {
 		long end = System.currentTimeMillis();
 		System.out.println("Finished building index! Time spent: "+ (end-start) + " ms");
 		System.out.println("-------------------------------------------------");
-	}
-	
-	public void testFileIsModified(){
-		Searcher s = new Searcher(factory);
-		
-		File f = new File("C:\\Users\\Lars\\Documents\\GitHub\\synchronize-pdfsearch\\PDFs\\1.pdf");
-		
-		System.out.println(s.fileIsModified(f));
 	}
 	
 	public void search(String term){
@@ -111,10 +89,10 @@ public class PDFSearch {
 	
 	public ArrayList<File> getFiles(File start){		
 		if(!start.isDirectory())
-			return new ArrayList<File>();
+			return new ArrayList<>();
 		
 		// Create an arraylist containing all PDF files
-		ArrayList<File> pdfs = new ArrayList<File>();
+		ArrayList<File> pdfs = new ArrayList<>();
 		
 		// Get the files and directories in our current filter
 		File[] files = start.listFiles(pdfAndDirectoryFileFilter);
@@ -133,10 +111,12 @@ public class PDFSearch {
 	public void addPDFs(){
 		Indexer indexer = new Indexer(factory);
 		
-		File dir = new File("C:\\Users\\Lars\\Documents\\GitHub\\synchronize-pdfsearch\\Hamlet-PDFs");
+		File dir = new File("../HamletPDFs");
 		
 		ArrayList<File> files = getFiles(dir);
-		for(File f : files)
+		for(File f : files){
 			indexer.addPDF(0, f);
+			break;
+		}
 	}
 }

@@ -171,3 +171,5 @@ pip-log.txt
 #crapster index
 /Index/*
 /Hamlet-PDFs/*
+/HamletPDFs/*
+/PDFSearch/nbproject/*
