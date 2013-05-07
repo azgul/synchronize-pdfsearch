@@ -9,5 +9,5 @@ package pdfsearch;
  * @author Lars
  */
 public class Constants {
-	public static final String INDEX_DIRECTORY = "../Index";
+	public static final String INDEX_DIRECTORY = "..\\index";
 }

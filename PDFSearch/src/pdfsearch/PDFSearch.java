@@ -111,7 +111,7 @@ public class PDFSearch {
 	public void addPDFs(){
 		Indexer indexer = new Indexer(factory);
 		
-		File dir = new File("../HamletPDFs");
+		File dir = new File("..\\pdfs");
 		
 		ArrayList<File> files = getFiles(dir);
 		for(File f : files){
