@@ -113,14 +113,14 @@ public class PDFSearch {
 	}
 	
 	public void addPDFs(){
-		Indexer indexer = new Indexer(factory);
+		/*Indexer indexer = new Indexer(factory);
 		
 		File dir = new File("..\\pdfs");
 		
 		ArrayList<File> files = getFiles(dir);
 		for(File f : files){
-			indexer.addPDF(0, f);
+			//indexer.addPDF(0, f);
 			//break;
-		}
+		}*/
 	}
 }

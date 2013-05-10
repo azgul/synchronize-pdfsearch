@@ -4,10 +4,15 @@
  */
 package pdfsearch;
 
-import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.DirectoryStream;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.DirectoryReader;
@@ -22,10 +27,8 @@ import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.NumericRangeQuery;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
-import org.apache.lucene.search.Sort;
 import org.apache.lucene.search.TermQuery;
 import org.apache.lucene.search.TopDocs;
-import org.apache.lucene.search.TopScoreDocCollector;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.util.Version;
 
@@ -35,9 +38,22 @@ import org.apache.lucene.util.Version;
  */
 public class Searcher {
 	private IndexFactory factory;
+	private Path searchPath;
+	private DirectoryStream.Filter<Path> filter;
+	
+	public Searcher(IndexFactory factory, Path searchPath, DirectoryStream.Filter<Path> filter) {
+		this(factory, searchPath);
+		this.filter = filter;
+	}
+	
+	public Searcher(IndexFactory factory, Path searchPath) {
+		this(factory);
+		this.searchPath = searchPath;
+	}
 	
 	public Searcher(IndexFactory factory){
 		this.factory = factory;
+		this.searchPath = FileSystems.getDefault().getPath("pdfs");
 	}
 	
 	public List<SearchResult> search(String searchTerm) throws IOException, ParseException{
@@ -78,6 +94,10 @@ public class Searcher {
 		}
 		
 		ArrayList<SearchResult> searchResult = new ArrayList<>();
+		if(!DirectoryReader.indexExists(index)) {
+			// if no index exists we build the index
+			buildIndex();
+		}
 		try (IndexReader reader = DirectoryReader.open(index)) {
 			IndexSearcher searcher = new IndexSearcher(reader);
 			
@@ -98,6 +118,10 @@ public class Searcher {
 		}
 		
 		return searchResult;
+	}
+	
+	protected void generateIndex() {
+		
 	}
 	
 	protected BooleanQuery generateQueryI(List<Integer> items, String field){
@@ -131,17 +155,16 @@ public class Searcher {
 		return q;
 	}
 	
-	public boolean fileIsModified(int category, File f){
+	public boolean fileIsModified(int category, Path p){
 		try{
 			Directory index = factory.getIndex();
 			if(index.listAll().length == 0)
 				return true;
 			
-			Analyzer analyzer = factory.getAnalyzer();
-			
 			// Create the two separate queries to match the (1) path and (2) modified date
-			Query pathQuery = new TermQuery(new Term("path", f.getPath()));
-			Query modifiedQuery = NumericRangeQuery.newLongRange("modified", f.lastModified(), f.lastModified(), true, true);
+			long lastModified = Files.getLastModifiedTime(p).toMillis();
+			Query pathQuery = new TermQuery(new Term("path", p.toString()));
+			Query modifiedQuery = NumericRangeQuery.newLongRange("modified", lastModified, lastModified, true, true);
 			
 			// Combine the queries in a Boolean Query, which states that both the two previous queries must occur
 			BooleanQuery bq = new BooleanQuery();
@@ -168,7 +191,55 @@ public class Searcher {
 		}
 	}
 	
-	public boolean fileIsModified(File f){
-		return fileIsModified(0, f);
+	public boolean fileIsModified(Path p){
+		return fileIsModified(0, p);
+	}
+	
+	protected void buildIndex() {
+		Indexer indexer = new Indexer(factory);
+		
+		DirectoryStream<Path> paths;
+		try {
+			paths = Files.newDirectoryStream(searchPath, getSearchFilter());
+
+			for(Path p : paths){
+				indexer.addPDF(0, p);
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	/**
+	 * The search filter will by default search for PDF files.
+	 * If a filter was supplied to the constructor of the searcher that filter will be used.
+	 * @return DirectoryStream.Filter<Path>
+	 */
+	protected DirectoryStream.Filter<Path> getSearchFilter() {
+		if(filter == null){
+			filter = new DirectoryStream.Filter<Path>() {
+		        @Override
+		        public boolean accept(Path entry) throws IOException 
+		        {
+		        	// If this is a directory, we have a valid type
+					if(Files.isDirectory(entry))
+						return true;
+
+					// Check whether we have a PDF file
+					byte[] pdfMagicNumbers = {0x25, 0x50, 0x44, 0x46};
+					
+					try(InputStream ins = Files.newInputStream(entry)){
+						for(int i = 0; i < pdfMagicNumbers.length; i++){
+							if(ins.read() != pdfMagicNumbers[i])
+								return false;
+						}
+					}catch(IOException e){
+						return false;
+					}
+					return true;
+		        }
+		    };
+		}
+		return filter;
 	}
 }
