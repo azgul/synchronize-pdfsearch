@@ -92,6 +92,7 @@ public class Indexer {
 			StringField languageField = new StringField("language", SearchUtils.getAttribute(pdf, "hamlet.language"), Field.Store.YES);
 			LongField modifiedField = new LongField("modified", Files.getLastModifiedTime(pdf).toMillis(), Field.Store.YES);
 			IntField categoryField = new IntField("category", category, Field.Store.YES);
+			StringField filenameField = new StringField("filename", pdf.getFileName().toString(), Field.Store.NO); 
 			
 			/*if(pdf.getPath().equals("C:\\Users\\Lars\\Documents\\GitHub\\synchronize-pdfsearch\\PDFs\\test.pdf")){
 				System.out.println("Fixing keywords!");
@@ -107,6 +108,7 @@ public class Indexer {
 			doc.add(pathField);
 			doc.add(categoryField);
 			doc.add(languageField);
+			doc.add(filenameField);
 			
 			// Check if we should update or add the document to our index
 			if(w.getConfig().getOpenMode() == IndexWriterConfig.OpenMode.CREATE){

@@ -64,11 +64,24 @@ public class Searcher {
 		return search(searchTerm, categories, new ArrayList<String>());
 	}
 	
+	/**
+	 * Check whether the index already exists
+	 * @return boolean - true if index is found, false otherwise
+	 */
+	public boolean indexExists() {
+		try {
+			return DirectoryReader.indexExists(factory.getIndex());
+		} catch(IOException e) {
+			e.printStackTrace();
+			return false;
+		}
+	}
+	
 	public List<SearchResult> search(String searchTerm, List<Integer> categories, List<String> languages) throws IOException, ParseException{
 		Directory index = factory.getIndex();
 		Analyzer analyzer = factory.getAnalyzer();
 		
-		String[] searchFields = {"title", "contents", "keywords"};
+		String[] searchFields = {"title", "contents", "keywords", "filename"};
 		
 		Query mainQuery;
 		Query fieldQuery = new MultiFieldQueryParser(Version.LUCENE_42, searchFields, analyzer).parse(searchTerm);
@@ -118,10 +131,6 @@ public class Searcher {
 		}
 		
 		return searchResult;
-	}
-	
-	protected void generateIndex() {
-		
 	}
 	
 	protected BooleanQuery generateQueryI(List<Integer> items, String field){
@@ -195,19 +204,22 @@ public class Searcher {
 		return fileIsModified(0, p);
 	}
 	
-	protected void buildIndex() {
+	public int buildIndex() {
 		Indexer indexer = new Indexer(factory);
 		
 		DirectoryStream<Path> paths;
+		int added = 0;
 		try {
 			paths = Files.newDirectoryStream(searchPath, getSearchFilter());
 
 			for(Path p : paths){
-				indexer.addPDF(0, p);
+				if(indexer.addPDF(0, p))
+					added++;
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+		return added;
 	}
 	
 	/**
