@@ -11,7 +11,10 @@ import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Random;
+import java.util.Set;
 
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.document.Document;
@@ -57,11 +60,11 @@ public class Searcher {
 	}
 	
 	public List<SearchResult> search(String searchTerm) throws IOException, ParseException{
-		return search(searchTerm, new ArrayList<Integer>(), new ArrayList<String>());
+		return search(searchTerm, new HashSet<Integer>(), new HashSet<String>());
 	}
 	
-	public List<SearchResult> search(String searchTerm, List<Integer> categories) throws IOException, ParseException{
-		return search(searchTerm, categories, new ArrayList<String>());
+	public List<SearchResult> search(String searchTerm, Set<Integer> categories) throws IOException, ParseException{
+		return search(searchTerm, categories, new HashSet<String>());
 	}
 	
 	/**
@@ -77,23 +80,21 @@ public class Searcher {
 		}
 	}
 	
-	public List<SearchResult> search(String searchTerm, List<Integer> categories, List<String> languages) throws IOException, ParseException{
+	public List<SearchResult> search(String searchTerm, Set<Integer> categories, Set<String> languages) throws IOException, ParseException{
 		Directory index = factory.getIndex();
 		Analyzer analyzer = factory.getAnalyzer();
 		
 		String[] searchFields = {"title", "contents", "keywords", "filename"};
 		
-		Query mainQuery;
-		Query fieldQuery = new MultiFieldQueryParser(Version.LUCENE_42, searchFields, analyzer).parse(searchTerm);
-		if(categories.isEmpty() && languages.isEmpty())
-			mainQuery = fieldQuery;
-		else{
+		Query mainQuery;		
+		if(categories.isEmpty() && languages.isEmpty() && (searchTerm == null || searchTerm.isEmpty()))
+			return new ArrayList<SearchResult>();
+		else if(!categories.isEmpty() || !languages.isEmpty()) {
 			// Our main query should be a boolean query
 			mainQuery = new BooleanQuery();
 			
 			// Add the field and category queries
 			BooleanQuery bq = (BooleanQuery)mainQuery;
-			bq.add(fieldQuery, BooleanClause.Occur.MUST);
 			
 			// Create our inner boolean query, which should match any of the categories or languages
 			if(!categories.isEmpty()){
@@ -104,6 +105,14 @@ public class Searcher {
 				BooleanQuery categoryQuery = generateQueryS(languages, "language");
 				bq.add(categoryQuery, BooleanClause.Occur.MUST);	
 			}
+			
+			// Add the field query
+			if(searchTerm != null && !searchTerm.isEmpty()) {
+				Query fieldQuery = new MultiFieldQueryParser(Version.LUCENE_42, searchFields, analyzer).parse(searchTerm);
+				bq.add(fieldQuery, BooleanClause.Occur.MUST);
+			}
+		} else {
+			mainQuery = new MultiFieldQueryParser(Version.LUCENE_42, searchFields, analyzer).parse(searchTerm); 
 		}
 		
 		ArrayList<SearchResult> searchResult = new ArrayList<>();
@@ -113,7 +122,7 @@ public class Searcher {
 		}
 		try (IndexReader reader = DirectoryReader.open(index)) {
 			IndexSearcher searcher = new IndexSearcher(reader);
-			
+			System.out.println(mainQuery);
 			TopDocs results = searcher.search(mainQuery, Integer.MAX_VALUE);
 			ScoreDoc[] hits = results.scoreDocs;
 
@@ -133,7 +142,7 @@ public class Searcher {
 		return searchResult;
 	}
 	
-	protected BooleanQuery generateQueryI(List<Integer> items, String field){
+	protected BooleanQuery generateQueryI(Set<Integer> items, String field){
 		BooleanQuery q = new BooleanQuery();
 
 		// Iterate through all categories and create queries
@@ -146,7 +155,7 @@ public class Searcher {
 		return q;
 	}
 	
-	protected BooleanQuery generateQueryS(List<String> items, String field){
+	protected BooleanQuery generateQueryS(Set<String> items, String field){
 		Analyzer a = factory.getAnalyzer();
 		BooleanQuery q = new BooleanQuery();
 
@@ -206,6 +215,8 @@ public class Searcher {
 	
 	public int buildIndex() {
 		Indexer indexer = new Indexer(factory);
+		// TODO: fetch real category instead of random
+		Random rand = new Random();
 		
 		DirectoryStream<Path> paths;
 		int added = 0;
@@ -213,7 +224,7 @@ public class Searcher {
 			paths = Files.newDirectoryStream(searchPath, getSearchFilter());
 
 			for(Path p : paths){
-				if(indexer.addPDF(0, p))
+				if(indexer.addPDF(rand.nextInt(4)+1, p))
 					added++;
 			}
 		} catch (IOException e) {
