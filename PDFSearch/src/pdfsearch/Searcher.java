@@ -125,6 +125,7 @@ public class Searcher {
 			System.out.println(mainQuery);
 			TopDocs results = searcher.search(mainQuery, Integer.MAX_VALUE);
 			ScoreDoc[] hits = results.scoreDocs;
+			System.out.println("Hits: " + hits.length);
 
 			// 4. display results
 			for(int i=0;i<hits.length;++i) {
