@@ -9,6 +9,7 @@ import java.io.FileFilter;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 import org.apache.lucene.queryparser.classic.ParseException;
 
 /**
@@ -26,7 +27,7 @@ public class PDFSearch {
 		String phrase = "piglets";
 		
 		PDFSearch s = new PDFSearch(new MMapIndexFactory());
-		s.testBuildIndex();
+		//s.testBuildIndex();
 		s.testSearch(phrase);
 	}
 	
@@ -51,7 +52,10 @@ public class PDFSearch {
 	public void search(String term){
 		try{
 			Searcher s = new Searcher(factory);
-			System.out.println(s.search(term));
+			List<SearchResult> results = s.search(term);
+			for(SearchResult r : results){
+				System.out.println(r);
+			}
 		}catch(IOException e){
 			System.err.println("IOException in search");
 			System.err.println(e);
@@ -109,14 +113,14 @@ public class PDFSearch {
 	}
 	
 	public void addPDFs(){
-		Indexer indexer = new Indexer(factory);
+		/*Indexer indexer = new Indexer(factory);
 		
 		File dir = new File("..\\pdfs");
 		
 		ArrayList<File> files = getFiles(dir);
 		for(File f : files){
-			indexer.addPDF(0, f);
+			//indexer.addPDF(0, f);
 			//break;
-		}
+		}*/
 	}
 }

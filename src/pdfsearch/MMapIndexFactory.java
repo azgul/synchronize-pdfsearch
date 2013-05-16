@@ -6,6 +6,10 @@ package pdfsearch;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.Path;
+
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.index.IndexWriter;
@@ -19,14 +23,34 @@ import org.apache.lucene.util.Version;
  * @author Lars
  */
 public class MMapIndexFactory implements IndexFactory {	
+	private Path indexDirectory;
+	
+	public MMapIndexFactory() {
+		indexDirectory = FileSystems.getDefault().getPath(Constants.DEFAULT_INDEX_DIRECTORY);
+	}
+	
+	public MMapIndexFactory(String indexPath) {
+		indexDirectory = FileSystems.getDefault().getPath(indexPath);
+	}
+	
+	public MMapIndexFactory(Path indexPath) {
+		indexDirectory = indexPath;
+	}
+	
 	@Override
 	public Directory getIndex() throws IOException{
-		File index = new File(Constants.INDEX_DIRECTORY);
+		File index = indexDirectory.toFile();
 		
-		if(!index.isDirectory()){
-			// Create index directory
-			if(!index.mkdirs())
+		if(!Files.exists(indexDirectory)){
+			try {
+				Files.createDirectories(indexDirectory);
+			} catch(Exception ex) {
+				ex.printStackTrace();
 				return null;
+			}
+		} else if(!Files.isDirectory(indexDirectory)) {
+			System.err.println("Index path is not a directory.");
+			return null;
 		}
 		
 		return MMapDirectory.open(index);

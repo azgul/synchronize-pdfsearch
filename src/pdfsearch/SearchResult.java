@@ -1,6 +1,8 @@
 package pdfsearch;
 
 import java.io.File;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 /**
  *
@@ -29,6 +31,11 @@ public class SearchResult {
 	public int getCategory(){ return _category; }
 	public String getAbstract(){ return _abstract; }
 	public String getLanguage(){ return _language; }
-	public String getModifiedDate(){ return ""; }
-	public String getTitle(){ return "DummyTitle"; }
+	public String getModifiedDate(){ return new SimpleDateFormat("dd-MM-YYYY HH:mm").format(new Date(_pdf.lastModified())); }
+	public String getTitle(){ return _pdf.getName(); }
+	
+	@Override
+	public String toString(){
+		return String.format("%s (%s - %s) %s", getTitle(), getModifiedDate(), _pdf.lastModified(), _pdf.getAbsolutePath());
+	}
 }

@@ -4,40 +4,21 @@
  */
 package pdfsearch;
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.ByteBuffer;
-import java.nio.charset.Charset;
-import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.attribute.BasicFileAttributes;
-import java.nio.file.attribute.UserDefinedFileAttributeView;
-import org.apache.lucene.analysis.Analyzer;
+
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.IntField;
 import org.apache.lucene.document.LongField;
 import org.apache.lucene.document.StringField;
 import org.apache.lucene.document.TextField;
-import org.apache.lucene.index.DirectoryReader;
-import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.index.Term;
-import org.apache.lucene.queryparser.classic.MultiFieldQueryParser;
-import org.apache.lucene.search.BooleanClause;
-import org.apache.lucene.search.BooleanQuery;
-import org.apache.lucene.search.IndexSearcher;
-import org.apache.lucene.search.Query;
-import org.apache.lucene.search.ScoreDoc;
-import org.apache.lucene.search.TermQuery;
-import org.apache.lucene.search.TopDocs;
-import org.apache.lucene.store.Directory;
-import org.apache.lucene.util.Version;
 import org.apache.tika.exception.TikaException;
 import org.apache.tika.metadata.Metadata;
 import org.apache.tika.parser.ParseContext;
@@ -70,15 +51,15 @@ public class Indexer {
 	}
 	
 	public boolean addPDF(int category, String pdfPath){
-		File f = new File(pdfPath);
+		Path pdf = FileSystems.getDefault().getPath(pdfPath);
 		
-		if(!f.isFile())
+		if(!Files.isRegularFile(pdf))
 			return false;
 		
-		return addPDF(category, f);
+		return addPDF(category, pdf);
 	}
 	
-	public boolean addPDF(int category, File pdf){
+	public boolean addPDF(int category, Path pdf){
 		Searcher s = new Searcher(factory);
 		// Check if the file has been modified before adding to Index
 		if(!s.fileIsModified(category, pdf))
@@ -91,7 +72,7 @@ public class Indexer {
 			ContentHandler textHandler;
 			PDFParser parser = new PDFParser();
 			Metadata metadata;
-			try (InputStream input = new FileInputStream(pdf)) {
+			try (InputStream input = Files.newInputStream(pdf)) {
 				textHandler = new BodyContentHandler(-1);
 				
 				metadata = new Metadata();
@@ -107,10 +88,11 @@ public class Indexer {
 			TextField titleField = new TextField("title", (metadata.get("title") == null ? "" : metadata.get("title")), Field.Store.YES);
 			TextField contentsField = new TextField("contents", textHandler.toString(), Field.Store.NO);
 			TextField keywordField = new TextField("keywords", "", Field.Store.NO);
-			StringField pathField = new StringField("path", pdf.getPath(), Field.Store.YES);
+			StringField pathField = new StringField("path", pdf.toString(), Field.Store.YES);
 			StringField languageField = new StringField("language", SearchUtils.getAttribute(pdf, "hamlet.language"), Field.Store.YES);
-			LongField modifiedField = new LongField("modified", pdf.lastModified(), Field.Store.YES);
+			LongField modifiedField = new LongField("modified", Files.getLastModifiedTime(pdf).toMillis(), Field.Store.YES);
 			IntField categoryField = new IntField("category", category, Field.Store.YES);
+			StringField filenameField = new StringField("filename", pdf.getFileName().toString(), Field.Store.NO); 
 			
 			/*if(pdf.getPath().equals("C:\\Users\\Lars\\Documents\\GitHub\\synchronize-pdfsearch\\PDFs\\test.pdf")){
 				System.out.println("Fixing keywords!");
@@ -126,12 +108,13 @@ public class Indexer {
 			doc.add(pathField);
 			doc.add(categoryField);
 			doc.add(languageField);
+			doc.add(filenameField);
 			
 			// Check if we should update or add the document to our index
 			if(w.getConfig().getOpenMode() == IndexWriterConfig.OpenMode.CREATE){
 				w.addDocument(doc);
 			}else{
-				w.updateDocument(new Term("path", pdf.getPath()), doc);
+				w.updateDocument(new Term("path", pdf.toString()), doc);
 			}
 			
 			// Finally close and commit changes
