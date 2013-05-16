@@ -178,3 +178,4 @@ build.xml
 manifest.mf
 .project
 .classpath
+/nbproject/*
