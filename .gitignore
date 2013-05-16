@@ -174,3 +174,7 @@ pip-log.txt
 /HamletPDFs/*
 /PDFSearch/nbproject/*
 /pdfs/*
+build.xml
+manifest.mf
+.project
+.classpath
