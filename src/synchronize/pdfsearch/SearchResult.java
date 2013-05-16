@@ -31,7 +31,8 @@ public class SearchResult {
 	public int getCategory(){ return _category; }
 	public String getAbstract(){ return _abstract; }
 	public String getLanguage(){ return _language; }
-	public String getModifiedDate(){ return new SimpleDateFormat("dd-MM-YYYY HH:mm").format(new Date(_pdf.lastModified())); }
+	public String getModifiedDate(){ return new SimpleDateFormat("YYYY-MM-dd").format(new Date(_pdf.lastModified())); }
+	public long getModifiedTimestamp(){ return _pdf.lastModified(); }
 	public String getTitle(){ return _pdf.getName(); }
 	
 	@Override
