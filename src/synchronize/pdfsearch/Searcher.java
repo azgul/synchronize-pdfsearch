@@ -9,12 +9,16 @@ import java.io.InputStream;
 import java.nio.file.DirectoryStream;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
+import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Random;
+import java.util.Map;
 import java.util.Set;
+
+import synchronize.api.*;
+import synchronize.model.*;
 
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.document.Document;
@@ -135,8 +139,10 @@ public class Searcher {
 				int category = (d.get("category") == null ? 0 : Integer.parseInt(d.get("category")));
 				String language = d.get("language");
 				String path = d.get("path");
+				String descr = d.get("abstract");
+				String title = d.get("title");
 				
-				searchResult.add(new SearchResult(category, language, path));
+				searchResult.add(new SearchResult(path, category, language, title, descr));
 			}
 		}
 		
@@ -216,20 +222,14 @@ public class Searcher {
 	
 	public int buildIndex() {
 		Indexer indexer = new Indexer(factory);
-		// TODO: fetch real category instead of random
-		Random rand = new Random();
-		
-		DirectoryStream<Path> paths;
 		int added = 0;
-		try {
-			paths = Files.newDirectoryStream(searchPath, getSearchFilter());
-
-			for(Path p : paths){
-				if(indexer.addPDF(rand.nextInt(4)+1, p))
-					added++;
-			}
-		} catch (IOException e) {
-			e.printStackTrace();
+		Map<String,SyncFile> files = FilesSingleton.getInstance().getFileMap();
+		for(SyncFile f : files.values()) {
+			Path file = searchPath.resolve(f.getFile());
+			if(Files.notExists(file, new LinkOption[0]))
+				System.err.println("Could not find file " + file.toString());
+			else if(indexer.addPDF(file, f.getCategory(), f.getFileName(), f.getKeywords(), f.getDescription(), f.getLanguage()))
+				added++;
 		}
 		return added;
 	}

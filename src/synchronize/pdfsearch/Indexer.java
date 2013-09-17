@@ -50,16 +50,16 @@ public class Indexer {
 		return true;
 	}
 	
-	public boolean addPDF(int category, String pdfPath){
+	public boolean addPDF(String pdfPath, int category){
 		Path pdf = FileSystems.getDefault().getPath(pdfPath);
 		
 		if(!Files.isRegularFile(pdf))
 			return false;
 		
-		return addPDF(category, pdf);
+		return addPDF(pdf, category, null, null, null, null);
 	}
 	
-	public boolean addPDF(int category, Path pdf){
+	public boolean addPDF(Path pdf, int category, String title, String keywords, String descr, String lang){
 		Searcher s = new Searcher(factory);
 		// Check if the file has been modified before adding to Index
 		if(!s.fileIsModified(category, pdf))
@@ -82,17 +82,25 @@ public class Indexer {
 			// Create the Lucene Document
 			Document doc = new Document();
 			
-			
-			
+			if(title == null) title = pdf.getFileName().toString();
+			if(lang == null) lang = "en-GB"; else System.out.println(lang);
+			if(descr == null) descr = "Lorem ipsum...";
+			if(keywords == null) keywords = "";
+			String theTitle = title;
+			String attLang = SearchUtils.getAttribute(pdf, "hamlet.language");
+			String theLang = attLang == "" ? lang : attLang;
+			System.out.println(theLang);
 			// Initialize the indexing fields
-			TextField titleField = new TextField("title", (metadata.get("title") == null ? "" : metadata.get("title")), Field.Store.YES);
+			TextField titleField = new TextField("title", theTitle, Field.Store.YES);
 			TextField contentsField = new TextField("contents", textHandler.toString(), Field.Store.NO);
-			TextField keywordField = new TextField("keywords", "", Field.Store.NO);
+			TextField keywordField = new TextField("keywords", keywords, Field.Store.NO);
+			keywordField.setBoost(3);
 			StringField pathField = new StringField("path", pdf.toString(), Field.Store.YES);
-			StringField languageField = new StringField("language", SearchUtils.getAttribute(pdf, "hamlet.language"), Field.Store.YES);
+			StringField languageField = new StringField("language", theLang, Field.Store.YES);
 			LongField modifiedField = new LongField("modified", Files.getLastModifiedTime(pdf).toMillis(), Field.Store.YES);
 			IntField categoryField = new IntField("category", category, Field.Store.YES);
-			StringField filenameField = new StringField("filename", pdf.getFileName().toString(), Field.Store.NO); 
+			StringField filenameField = new StringField("filename", pdf.getFileName().toString(), Field.Store.NO);
+			TextField abstractField = new TextField("abstract", descr, Field.Store.YES);
 			
 			/*if(pdf.getPath().equals("C:\\Users\\Lars\\Documents\\GitHub\\synchronize-pdfsearch\\PDFs\\test.pdf")){
 				System.out.println("Fixing keywords!");
@@ -109,6 +117,7 @@ public class Indexer {
 			doc.add(categoryField);
 			doc.add(languageField);
 			doc.add(filenameField);
+			doc.add(abstractField);
 			
 			// Check if we should update or add the document to our index
 			if(w.getConfig().getOpenMode() == IndexWriterConfig.OpenMode.CREATE){

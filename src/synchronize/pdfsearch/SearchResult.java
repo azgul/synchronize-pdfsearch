@@ -27,13 +27,19 @@ public class SearchResult {
 		_language = language;
 	}
 	
+	public SearchResult(String pdf, int category, String language, String title, String descr) {
+		this(category, language, pdf);
+		_title = title;
+		_abstract = descr;
+	}
+	
 	public File getPdf(){ return _pdf; }
 	public int getCategory(){ return _category; }
 	public String getAbstract(){ return _abstract; }
 	public String getLanguage(){ return _language; }
 	public String getModifiedDate(){ return new SimpleDateFormat("YYYY-MM-dd").format(new Date(_pdf.lastModified())); }
 	public long getModifiedTimestamp(){ return _pdf.lastModified(); }
-	public String getTitle(){ return _pdf.getName(); }
+	public String getTitle(){ return _title; }
 	
 	@Override
 	public String toString(){
