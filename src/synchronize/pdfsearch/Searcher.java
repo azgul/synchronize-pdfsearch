@@ -223,7 +223,7 @@ public class Searcher {
 	public int buildIndex() {
 		Indexer indexer = new Indexer(factory);
 		int added = 0;
-		Map<String,SyncFile> files = FilesSingleton.getInstance().getFileMap();
+		Map<String,SyncFile> files = Synchronizer.getInstance().getFileMap();
 		for(SyncFile f : files.values()) {
 			Path file = searchPath.resolve(f.getFile());
 			if(Files.notExists(file, new LinkOption[0]))
